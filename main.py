@@ -5,18 +5,18 @@ from PIL import Image, ImageTk
 WIDTH = 1000
 HEIGHT = 1000
 BODYSIZE = 50
-STARTDELAY = 500
+STARTDELAY = 300
 MINDELAY = 100
 STEPDELAY = 20
 LENGTH = 3
 
 countBodyW = WIDTH / BODYSIZE
 countBodyH = HEIGHT / BODYSIZE
-x = [0] * int(countBodyW)
-y = [0] * int(countBodyH)
 
 class Snake(Canvas):
 
+    x = False
+    y = False
     headImage = False
     head = False
     body = False
@@ -46,6 +46,8 @@ class Snake(Canvas):
         self.direction = "Right"
         self.directiontemp = "Right"
         self.lose = False
+        self.x = [0] * int(countBodyW)
+        self.y = [0] * int(countBodyH)
 
         self.delete(ALL)
         self.spawnActors()
@@ -55,14 +57,14 @@ class Snake(Canvas):
 
         self.spawnApple()
 
-        x[0] = int(countBodyW / 2) * BODYSIZE
-        y[0] = int(countBodyH / 2) * BODYSIZE
+        self.x[0] = int(countBodyW / 2) * BODYSIZE
+        self.y[0] = int(countBodyH / 2) * BODYSIZE
         for i in range(1, LENGTH):
-            x[i] = x[0] - BODYSIZE * i
-            y[i] = y[0]
-        self.create_image(x[0], y[0], image=self.head, anchor="nw", tag="head")
+            self.x[i] = self.x[0] - BODYSIZE * i
+            self.y[i] = self.y[0]
+        self.create_image(self.x[0], self.y[0], image=self.head, anchor="nw", tag="head")
         for i in range(LENGTH - 1, 0, -1):
-            self.create_image(x[i], y[i], image=self.body, anchor="nw", tag="body")
+            self.create_image(self.x[i], self.y[i], image=self.body, anchor="nw", tag="body")
 
     def spawnApple(self):
         apple = self.find_withtag("apple")
@@ -109,6 +111,8 @@ class Snake(Canvas):
             self.directiontemp = key
         elif key == "Down" and self.direction != "Up":
             self.directiontemp = key
+        elif key == "space" and self.lose:
+            self.beginplay() 
 
     def updateDirection(self):
         self.direction = self.directiontemp
@@ -129,6 +133,8 @@ class Snake(Canvas):
             self.updateDirection()
             self.moveSnake()
             self.after(self.delay, self.timer)
+        else:
+            self.gameOver()
     
     def moveSnake(self):
         head = self.find_withtag("head")
@@ -146,6 +152,13 @@ class Snake(Canvas):
             self.move(head, 0, -BODYSIZE)
         elif self.direction == "Down":
             self.move(head, 0, BODYSIZE)
+    
+    def gameOver(self):
+        body = self.find_withtag("body")
+        self.delete(ALL)
+        self.create_text(self.winfo_width() / 2, self.winfo_height() / 2 - 60, text="Вы проиграли!", fill="white", font="Tahoma 40", tag="text")
+        self.create_text(self.winfo_width() / 2, self.winfo_height() / 2, text=f'Длина змейки: {len(body) + 1}', fill="white", font="Tahoma 40", tag="text")
+        self.create_text(self.winfo_width() / 2, self.winfo_height() / 2 + 60, text="Нажмите пробел для новой игры", fill="white", font="Tahoma 40", tag="text")
         
 
 root = Tk()
