@@ -6,6 +6,8 @@ WIDTH = 1000
 HEIGHT = 1000
 BODYSIZE = 50
 STARTDELAY = 500
+MINDELAY = 100
+STEPDELAY = 20
 LENGTH = 3
 
 countBodyW = WIDTH / BODYSIZE
@@ -70,6 +72,33 @@ class Snake(Canvas):
         ry = random.randint(0, countBodyH - 1)
         self.create_image(rx * BODYSIZE, ry * BODYSIZE, anchor="nw", image=self.apple, tag="apple")
 
+    def chexkAplle(self):
+        apple = self.find_withtag("apple")[0]
+        head = self.find_withtag("head")
+        body = self.find_withtag("body")[-1]
+        x1, y1, x2, y2 = self.bbox(head)
+        overlaps = self.find_overlapping(x1, y1, x2, y2)
+        for actor in overlaps:
+            if actor == apple:
+                tempx, tempy = self.coords(body)
+                self.spawnApple()
+                self.create_image(tempx, tempy, image=self.body, anchor="nw", tag="body")
+                if self.delay > MINDELAY:
+                    self.delay -= STEPDELAY
+        
+    def checkCollisions(self):
+        head = self.find_withtag("head")
+        body = self.find_withtag("body")
+        x1, y1, x2, y2 = self.bbox(head)
+        overlaps = self.find_overlapping(x1, y1, x2, y2)
+        for b in body:
+            for actor in overlaps:
+                if actor == b:
+                    self.lose = True
+
+        if x1 < 0 or x2 > WIDTH or y1 < 0 or y2 > HEIGHT:
+            self.lose = True
+
     def onKeyPressed(self, event):
         key = event.keysym
         if key == "Left" and self.direction != "Right":
@@ -94,7 +123,9 @@ class Snake(Canvas):
         self.create_image(headx, heady, image=self.head, anchor="nw", tag="head")
 
     def timer(self):
+        self.checkCollisions()
         if not self.lose:
+            self.chexkAplle()
             self.updateDirection()
             self.moveSnake()
             self.after(self.delay, self.timer)
